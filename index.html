@@ -223,7 +223,7 @@ body {
 .section-count { font-size: 11px; color: var(--text3); }
 
 .exp-item {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: flex-start; gap: 12px;
   padding: 11px 0;
   border-bottom: 1px solid var(--border);
   position: relative;
@@ -1131,18 +1131,23 @@ function expItemHtml(exp) {
   const icon   = CAT_ICONS[exp.category]  || '💼';
   const color  = CAT_COLORS[exp.category] || '#64748b';
   const synced = exp.synced;
+  const note   = exp.note ? `<div class="exp-note">${exp.note}</div>` : '';
   return `
   <div class="exp-item">
-    <div class="exp-icon" style="background:${color}22;">${icon}</div>
+    <div class="exp-icon" style="background:${color}22;margin-top:2px;">${icon}</div>
     <div class="exp-info">
-      <div class="exp-cat">${exp.category || '—'} ${!synced ? '<span class="exp-sync-badge">pending</span>' : ''}</div>
-      <div class="exp-note">${exp.note || '—'}</div>
-      <div class="exp-date">${exp.date}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div>
+          <div class="exp-cat">${exp.category || '—'} ${!synced ? '<span class="exp-sync-badge">pending</span>' : ''}</div>
+          <div class="exp-date">${exp.date}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <div class="exp-amount">৳${(+exp.amount).toLocaleString('en-IN', {minimumFractionDigits:0})}</div>
+          <button class="exp-del" onclick="deleteExp('${exp.id}')" title="মুছুন">🗑</button>
+        </div>
+      </div>
+      ${note}
     </div>
-    <div class="exp-right">
-      <div class="exp-amount">৳${(+exp.amount).toLocaleString('bn-BD', {minimumFractionDigits:0})}</div>
-    </div>
-    <button class="exp-del" onclick="deleteExp('${exp.id}')" title="মুছুন">🗑</button>
   </div>`;
 }
 
