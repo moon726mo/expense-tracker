@@ -1058,28 +1058,46 @@ function renderMonthlyBreakdown() {
         .filter(([,v]) => v.amt > 0)
         .sort(([,a],[,b]) => b.amt - a.amt);
 
+      // Group expenses by category, then list each entry with note
+      const catGroups = {};
+      CATEGORIES.forEach(c => catGroups[c] = []);
+      exps.forEach(e => { if (catGroups[e.category] !== undefined) catGroups[e.category].push(e); });
+
       let catRows = sorted.map(([cat, v]) => {
-        const pct = total > 0 ? (v.amt/total*100).toFixed(0) : 0;
+        const pct   = total > 0 ? (v.amt/total*100).toFixed(0) : 0;
         const color = CAT_COLORS[cat] || '#64748b';
+        const entries = catGroups[cat]
+          .sort((a,b) => _parseLocalDate(b.date) - _parseLocalDate(a.date))
+          .map(e => `
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0 6px 28px;border-bottom:1px dashed var(--border);">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11px;color:var(--text3);">${e.date}</div>
+                ${e.note ? `<div style="font-size:12px;color:var(--text);word-break:break-word;margin-top:2px;">${e.note}</div>` : ''}
+              </div>
+              <div style="font-size:13px;font-weight:700;color:var(--text);font-family:var(--mono);flex-shrink:0;margin-left:10px;">৳${Math.round(+e.amount).toLocaleString('en-IN')}</div>
+            </div>`).join('');
         return `
-        <div class="month-cat-row">
-          <div class="month-cat-left">
-            <span class="month-cat-icon">${CAT_ICONS[cat]||'💼'}</span>
-            <div>
-              <div class="month-cat-name">${cat}</div>
-              <div class="month-cat-entries">${v.count} টি এন্ট্রি · ${pct}%</div>
-              <div class="month-cat-bar-wrap" style="width:80px;">
-                <div class="month-cat-bar-fill" style="width:${pct}%;background:${color};"></div>
+        <div class="month-cat-row" style="flex-direction:column;align-items:stretch;padding-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">
+            <div class="month-cat-left">
+              <span class="month-cat-icon">${CAT_ICONS[cat]||'💼'}</span>
+              <div>
+                <div class="month-cat-name">${cat}</div>
+                <div class="month-cat-entries">${v.count} টি এন্ট্রি · ${pct}%</div>
               </div>
             </div>
+            <div class="month-cat-amt" style="color:${color};">৳${Math.round(v.amt).toLocaleString('en-IN')}</div>
           </div>
-          <div class="month-cat-amt">৳${Math.round(v.amt).toLocaleString('en-IN')}</div>
+          <div class="month-cat-bar-wrap" style="width:100%;margin-bottom:4px;">
+            <div class="month-cat-bar-fill" style="width:${pct}%;background:${color};"></div>
+          </div>
+          ${entries}
         </div>`;
       }).join('');
 
       html += `
       <div class="month-detail-panel open" id="detail-${key}">
-        <div class="month-detail-title">ক্যাটাগরি অনুযায়ী বিভাজন</div>
+        <div class="month-detail-title">সব খরচ — ক্যাটাগরি অনুযায়ী</div>
         ${catRows}
         <div class="month-total-row">
           <div class="month-total-label">মোট</div>
